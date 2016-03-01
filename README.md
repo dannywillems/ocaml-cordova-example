@@ -3,6 +3,13 @@
 This is an example of the binding to the *cordova* object. See the binding
 [here](https://github.com/dannywillems/ocaml-cordova)
 
+For the moment, basic binding to
+* platformId
+* platformVersion
+* version
+
+![screenshot1.png](github_res/screenshot1.png)
+
 ## What is cordova ?
 
 [Wikipedia](https://en.wikipedia.org/wiki/Apache_Cordova):
@@ -23,6 +30,10 @@ distribution and have access to native device APIs).
 
 js_of_ocaml allows you to compile ml files into javascript files. With this
 compiler, you can use OCaml to develop hybrid mobile application.
+
+You need to install [ocaml](http://ocaml.org/), [opam](https://opam.ocaml.org/)
+and js_of_ocaml (with opam). You also need to install cordova (see
+[here](https://cordova.apache.org/docs/en/4.0.0/guide/cli/).
 
 ## Project structure
 
