@@ -8,7 +8,7 @@ For the moment, basic binding to
 * platformVersion
 * version
 
-![screenshot1.png](github_res/screenshot1.png)
+![screenshot1_android.png](github_res/screenshot1_android.png) ![screenshot1_ios.png](github_res/screenshot1_ios.png)
 
 ## What is cordova ?
 
