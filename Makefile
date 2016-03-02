@@ -1,5 +1,12 @@
 ################################################################################
 ############################## Variables to change #############################
+
+##### Choose the syntax extension you want between camlp4 (deprecated since
+##### js_of_ocaml >= 2.7) and ppx (available for js_of_ocaml >= 2.7)
+##### Default is ppx if SYNTAX_EXTENSION is set to different values than ppx or
+##### camlp4
+SYNTAX_EXTENSION			= ppx
+
 ##### Set DEBUG to True if you don't want to minify css files (just compile).
 ##### Set to false if you're in dev.
 DEBUG						= True
@@ -9,16 +16,16 @@ PROJECT_NAME				= OCamlTest
 VERSION						= 1.0.0
 
 #####
-DEV_DIRECTORY					= app
+DEV_DIRECTORY				= app
 PROD_DIRECTORY				= www
 
 ##### js_of_ocaml configuration
-ML_DIRECTORY				= $(DEV_DIRECTORY)/ml
+ML_DIRECTORY				= 	$(DEV_DIRECTORY)/ml
 ML_FILES 					=	$(ML_DIRECTORY)/cordova.ml \
 								$(ML_DIRECTORY)/test.ml
-MLI_FILES 					= $(ML_DIRECTORY)/cordova.mli
-ML_JS_DIRECTORY				= $(PROD_DIRECTORY)/js
-ML_JS_OUTPUT_FILE			= main.js
+MLI_FILES 					=	$(ML_DIRECTORY)/cordova.mli
+ML_JS_DIRECTORY				=	$(PROD_DIRECTORY)/js
+ML_JS_OUTPUT_FILE			=	main.js
 
 CUSTOM_SYNTAX				=
 CUSTOM_PACKAGE 				=
@@ -43,7 +50,7 @@ BUILD_NAME_TEMPLATE			= $(PROJECT_NAME)-$(VERSION)-$(shell date +%Y%m%d.%H%M%S)
 BUILD_RELEASE_NAME_TEMPLATE = $(PROJECT_NAME)-$(VERSION)
 
 ##### PLUGINS
-PLUGINS								= cordova-plugin-whitelist
+PLUGINS						= cordova-plugin-whitelist
 ################################################################################
 
 ################################################################################
@@ -51,8 +58,14 @@ PLUGINS								= cordova-plugin-whitelist
 ##### You don't need to change it.
 MLI_FILES					=	$(wildcard $(ML_DIRECTORY)/*.mli)
 TMP_OUT_BYTECODE			=	$(ML_DIRECTORY)/out.byte
-BASIC_PACKAGE				=	-package js_of_ocaml -package js_of_ocaml.syntax
-BASIC_SYNTAX				=	-syntax camlp4o
+
+ifeq ($(SYNTAX_EXTENSION),camlp4)
+	BASIC_PACKAGE 	=	-package js_of_ocaml -package js_of_ocaml.syntax
+	BASIC_SYNTAX 	=	-syntax camlp4o
+else
+	BASIC_PACKAGE 	=	-package js_of_ocaml -package js_of_ocaml.ppx
+endif
+
 CC_BYTECODE					=	ocamlfind ocamlc -I $(ML_DIRECTORY) $(BASIC_PACKAGE) $(CUSTOM_PACKAGE) \
 								$(BASIC_SYNTAX) $(CUSTOM_SYNTAX) -linkpkg
 
