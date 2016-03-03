@@ -28,12 +28,12 @@ distribution and have access to native device APIs).
 
 ## Using js_of_ocaml to develop in OCaml on mobile
 
-js_of_ocaml allows you to compile ml files into javascript files. With this
+js_of_ocaml allows you to compile ml files in javascript files. With this
 compiler, you can use OCaml to develop hybrid mobile application.
 
 You need to install [ocaml](http://ocaml.org/), [opam](https://opam.ocaml.org/)
 and js_of_ocaml (with opam). You also need to install cordova (see
-[here](https://cordova.apache.org/docs/en/4.0.0/guide/cli/).
+[here](https://cordova.apache.org/docs/en/4.0.0/guide/cli/)).
 
 ## Project structure
 
@@ -44,10 +44,10 @@ and js_of_ocaml (with opam). You also need to install cordova (see
 	below).
 
 * app:
-	The main directory. It contains all source files you.
+	The main directory. **You write your code here**.
 	At the root, you have the index.html file. You also have a ml directory
 	which you can put your ml files in. If you decide to write your OCaml code
-	into another directory, you have to modify the ML_DIRECTORY variable in the
+	in another directory, you have to modify the ML_DIRECTORY variable in the
 	Makefile.
 
 ## How does the Makefile work ?
@@ -96,7 +96,7 @@ Not useful here.
 The Makefile allows you to keep old built archive.
 
 * BUILD_DIRECTORY: the directory where you want to keep the archive. An android
-  and ios subdirectory are created and the archive is copied into the
+  and ios subdirectory are created and the archive is copied in the
   appropriate directory.
 * BUILD_NAME_TEMPLATE: the Makefile renames the built apk or ipa. You can choose
   the name template.
