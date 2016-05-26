@@ -1,8 +1,10 @@
 let onload _ =
-  let text = "version: " ^ (Js.to_string Cordova.cordova##version) ^
-  "\nplatformId: " ^ (Js.to_string Cordova.cordova##platformId) ^
-  "\nplatformVersion: " ^ (Js.to_string Cordova.cordova##platformVersion) in
-  Dom_html.window##alert (Js.string text);
+  let text =
+    "version: " ^ Cordova.version ^
+    "\nplatform id: " ^ Cordova.platform_id ^
+    "\nplatform version: " ^ Cordova.platform_version in
+  Jsoo_lib.alert text;
   Js._false
 
-let _ = Dom_html.window##.onload := Dom_html.handler onload
+let _ =
+  Jsoo_lib.onload onload

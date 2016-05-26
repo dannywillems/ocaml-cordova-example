@@ -1,83 +1,41 @@
-################################################################################
-############################## Variables to change #############################
-
-##### Choose the syntax extension you want between camlp4 (deprecated since
-##### js_of_ocaml >= 2.7) and ppx (available for js_of_ocaml >= 2.7)
-##### Default is ppx if SYNTAX_EXTENSION is set to different values than ppx or
-##### camlp4
-SYNTAX_EXTENSION			= ppx
-
-##### Set DEBUG to True if you don't want to minify css files (just compile).
-##### Set to false if you're in dev.
-DEBUG						= True
-
-##### PROJECT VARIABLES
-PROJECT_NAME				= OCamlTest
-VERSION						= 1.0.0
-
-#####
-DEV_DIRECTORY				= app
-PROD_DIRECTORY				= www
-
-##### js_of_ocaml configuration
-ML_DIRECTORY				= 	$(DEV_DIRECTORY)/ml
-ML_FILES 					=	$(ML_DIRECTORY)/cordova.ml \
-								$(ML_DIRECTORY)/test.ml
-MLI_FILES 					=	$(ML_DIRECTORY)/cordova.mli
-ML_JS_DIRECTORY				=	$(PROD_DIRECTORY)/js
-ML_JS_OUTPUT_FILE			=	main.js
-
-CUSTOM_SYNTAX				=
-CUSTOM_PACKAGE 				=
-
-##### Less configuration
-LESS_DIR					= $(DEV_DIRECTORY)/less
-LESS_FILES					=
-
-##### Output directories for css files
-CSS_DIR						= $(PROD_DIRECTORY)/css
-CSS_FILES					= $(patsubst $(LESS_DIR)/%.less, $(CSS_DIR)/%.css, $(LESS_FILES))
-
-##### DIRECTORIES AND FILES TO COPY FROM DEV LOCATION TO WWW LOCATION
-##### By default, it copies index.html
-DEV_DIRECTORY_LIST			= $(DEV_DIRECTORY)/index.html
-##### Don't change this variable if you you want to keep the same directory structure into the prod directory
-PROD_DIRECTORY_LIST			= $(patsubst $(DEV_DIRECTORY)/%, $(PROD_DIRECTORY)/%, $(DEV_DIRECTORY_LIST))
-
-##### BUILD DIRECTORY
-BUILD_DIRECTORY				= $(shell pwd)/build
-BUILD_NAME_TEMPLATE			= $(PROJECT_NAME)-$(VERSION)-$(shell date +%Y%m%d.%H%M%S)
-BUILD_RELEASE_NAME_TEMPLATE = $(PROJECT_NAME)-$(VERSION)
-
-##### PLUGINS
-PLUGINS						= cordova-plugin-whitelist
-################################################################################
+include Makefile.conf
 
 ################################################################################
 ############################## Variables #######################################
 ##### You don't need to change it.
 MLI_FILES					=	$(wildcard $(ML_DIRECTORY)/*.mli)
+BYTE_FILES 					=	$(patsubst $(ML_DIRECTORY)/%.ml, $(ML_DIRECTORY)/%.byte, $(ML_FILES))
 TMP_OUT_BYTECODE			=	$(ML_DIRECTORY)/out.byte
+CC_CAML						=	ocamlc
 
 ifeq ($(SYNTAX_EXTENSION),camlp4)
 	BASIC_PACKAGE 	=	-package js_of_ocaml -package js_of_ocaml.syntax
-	BASIC_SYNTAX 	=	-syntax camlp4o
+	BASIC_SYNTAX	=	-syntax camlp4o
 else
-	BASIC_PACKAGE 	=	-package js_of_ocaml -package js_of_ocaml.ppx
+	BASIC_PACKAGE	=	-package js_of_ocaml -package js_of_ocaml.ppx
 endif
 
-CC_BYTECODE					=	ocamlfind ocamlc -I $(ML_DIRECTORY) $(BASIC_PACKAGE) $(CUSTOM_PACKAGE) \
-								$(BASIC_SYNTAX) $(CUSTOM_SYNTAX) -linkpkg
+ifeq ($(USE_GEN_JS_API) $(DEBUG),True True)
+	CC_JS		= js_of_ocaml -o $(ML_JS_DIRECTORY)/$(ML_JS_OUTPUT_FILE) --pretty --debug-info +gen_js_api/ojs_runtime.js $(TMP_OUT_BYTECODE)
+	CC_CAML		= ocamlc -g -no-check-prims
+else ifeq ($(USE_GEN_JS_API) $(DEBUG),True False)
+	CC_JS = js_of_ocaml -o $(ML_JS_DIRECTORY)/$(ML_JS_OUTPUT_FILE) +gen_js_api/ojs_runtime.js $(TMP_OUT_BYTECODE)
+	CC_CAML		= ocamlc -no-check-prims
+else ifeq ($(USE_GEN_JS_API) $(DEBUG),False True)
+	CC_JS = js_of_ocaml -o $(ML_JS_DIRECTORY)/$(ML_JS_OUTPUT_FILE) --pretty --debug-info $(TMP_OUT_BYTECODE)
+	CC_CAML		= ocamlc -g
+else
+	CC_JS = js_of_ocaml -o $(ML_JS_DIRECTORY)/$(ML_JS_OUTPUT_FILE) $(TMP_OUT_BYTECODE)
+endif
 
-CC_JS						=	js_of_ocaml -o $(ML_JS_DIRECTORY)/$(ML_JS_OUTPUT_FILE)
 CMO_FILES					=	$(patsubst $(ML_DIRECTORY)/%.ml, $(ML_DIRECTORY)/%.cmo, $(ML_FILES))
 CMI_FILES					=	$(patsubst $(ML_DIRECTORY)/%.ml, $(ML_DIRECTORY)/%.cmi, $(ML_FILES))
 
 ifeq ($(DEBUG),True)
-	    LESSC=lessc
-	else
-	    LESSC=lessc --clean-css
-	endif
+	LESSC	= lessc
+else
+	LESSC	= lessc --clean-css
+endif
 ################################################################################
 
 ################################################################################
@@ -92,12 +50,13 @@ ifeq ($(DEBUG),True)
 
 all: init_dir css js_of_ocaml $(PROD_DIRECTORY_LIST)
 
-##### Compile ml to js
+##### Compile bytecode to js
 js_of_ocaml:
 	mkdir -p $(ML_JS_DIRECTORY)
-	$(CC_BYTECODE) -o $(TMP_OUT_BYTECODE) $(MLI_FILES) $(ML_FILES)
-	$(CC_JS) $(TMP_OUT_BYTECODE)
-
+	ocamlfind $(CC_CAML) -I $(ML_DIRECTORY) -o $(TMP_OUT_BYTECODE) \
+	$(BASIC_PACKAGE) $(CUSTOM_PACKAGE) $(BASIC_SYNTAX) $(CUSTOM_SYNTAX) \
+	-linkpkg $(ML_FILES) $(MLI_FILES)
+	$(CC_JS)
 
 ##### MINIFY CSS
 css: clean_css_minify $(CSS_FILES)
@@ -110,6 +69,7 @@ else
 endif
 
 $(PROD_DIRECTORY)/%: $(DEV_DIRECTORY)/%
+	$(RM) $@
 	cp -r $< $@
 
 ##### Cordova rules
@@ -167,7 +127,7 @@ clean: clean_js_of_ocaml clean_css clean_css_minify
 
 clean_js_of_ocaml:
 	@echo "-----> Remove ml compiled file"
-	$(RM) $(TMP_OUT_BYTECODE) $(CMO_FILES) $(CMI_FILES)
+	$(RM) $(BYTE_FILES)
 	$(RM) $(ML_JS_DIRECTORY)/$(ML_JS_OUTPUT_FILE)
 
 clean_css_minify:
@@ -203,5 +163,8 @@ init_plugins: $(PLUGINS)
 $(PLUGINS):
 	cordova plugin add $@
 
-init_dep: init_plugins
-	# TODO: Initialise the directory with required packages and executables
+init_opam:
+	opam install $(OPAM_PKG)
+
+init: init_dir init_opam init_plugins
+	mkdir -p hooks
