@@ -96,8 +96,12 @@ else
 endif
 
 run_android: all
-	@echo "-----> Run the application on the connected device"
+	@echo "-----> Run the application on the connected device or in the emulator"
 	@cordova run android
+
+run_ios: all
+	@echo "-----> Run the application on the connected device or in the emulator"
+	@cordova run ios
 
 build_ios: all
 	@cordova build ios
